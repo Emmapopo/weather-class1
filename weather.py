@@ -5,6 +5,8 @@ import json
 import ssl
 import pickledb
 import os
+import anotherOutput
+import database
 
 arguments =  str(sys.argv)
 location = sys.argv[1][3:]
@@ -12,14 +14,16 @@ api_key = os.environ.get('api_key')
 db = pickledb.load('history.db', False)
 
 class Weather:
-    def __init__(self):
+    def __init__(self, outputClass, databaseClass):
         self.location = location
         self.api_key = api_key
+        self.output = outputClass
+        self.database = databaseClass
 
     def current(self):
         self.serviceurl = 'http://api.openweathermap.org/data/2.5/weather?'
         self.url = self.serviceurl + 'q=' + self.location + '&APPID=' + self.api_key
-        print('Retrieveing', self.url)
+        self.output.print('Retrieveing', self.url)
         self.uh = urllib.request.urlopen(self.url)
         self.data = self.uh.read().decode()
         try:
@@ -34,16 +38,12 @@ class Weather:
 
         self.dict_key = self.location
         self.dict_data = [self.temp, self.hum]
-        print('Weather forecast for:', self.location)
-        print('At', self.location, 'at time', self.time_stamp , 'the temperature is:', self.temp, 'while the humidity is', self.hum)
-        self.dict = {str(self.time_stamp):self.dict_data}
-
-        if location not in db.getall():
-            db.set(self.dict_key, self.dict)
-            db.dump()
-        else:
-            db.dadd(self.location,(str(self.time_stamp),self.dict_data))
-            db.dump()
+        self.output.print('Weather forecast for:', self.location)
+        self.output.print('At', self.location, 'at time', self.time_stamp , 'the temperature is:', self.temp, 'while the humidity is', self.hum)
+        self.dict = {"timestamp": str(self.time_stamp), "data": self.dict_data}
+        response = self.database.Save(self.dict_key, self.dict)
+        if not response:
+            self.output.print("unable to save")
 
     def forecast(self):
         self.serviceurl = 'http://api.openweathermap.org/data/2.5/weather?'
@@ -78,15 +78,17 @@ class Weather:
             self.time = Y['hourly'][a]['dt']
             self.temp = Y['hourly'][a]['temp']
             self.hum = Y['hourly'][a]['humidity']
-            print('At time:', self.time, ', temperature is:', self.temp, 'and humidity is:',self.hum)
+            self.output.print('At time:', self.time, ', temperature is:', self.temp, 'and humidity is:',self.hum)
 
     def history(self):
         self.log = db.dgetall(location)
-        print('A history of weather data obtained from', self.location)
+        self.output.print('A history of weather data obtained from', self.location)
         for key in self.log:
-            print('At time', key, 'the temperature and humidity are', self.log[key])
+            self.output.print('At time', key, 'the temperature and humidity are', self.log[key])
 
-w1 = Weather()
+outputInstance = anotherOutput.Output()
+databaseInstance = database.Database()
+w1 = Weather(outputClass=outputInstance, databaseClass=databaseInstance)
 
 if '-h' not in arguments and '-f' not in arguments :
     w1.current()
