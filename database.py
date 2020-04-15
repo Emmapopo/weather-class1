@@ -18,7 +18,6 @@ class Database():
     def Show(self, key):
         try:
             response = self.db.dgetall(key)
-            f
         except:
             response = False
         return response
