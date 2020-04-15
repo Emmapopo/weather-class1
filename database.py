@@ -14,3 +14,11 @@ class Database():
             response = self.db.dadd(key, (value["timestamp"],value["data"]))
         self.db.dump()
         return response
+
+    def Show(self, key):
+        try:
+            response = self.db.dgetall(key)
+            f
+        except:
+            response = False
+        return response

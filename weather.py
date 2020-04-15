@@ -81,13 +81,21 @@ class Weather:
             self.output.print('At time:', self.time, ', temperature is:', self.temp, 'and humidity is:',self.hum)
 
     def history(self):
-        self.log = db.dgetall(location)
+        response = self.database.Show(self.location)
+        print(response)
         self.output.print('A history of weather data obtained from', self.location)
-        for key in self.log:
-            self.output.print('At time', key, 'the temperature and humidity are', self.log[key])
+        if not response:
+            self.output.print("No history for", self.location)
+            quit()
+        for key in response:
+            self.output.print('At time', key, 'the temperature and humidity are', response[key])
+
+
+
 
 outputInstance = anotherOutput.Output()
 databaseInstance = database.Database()
+
 w1 = Weather(outputClass=outputInstance, databaseClass=databaseInstance)
 
 if '-h' not in arguments and '-f' not in arguments :
