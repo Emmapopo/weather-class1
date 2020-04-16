@@ -6,7 +6,8 @@ import ssl
 import pickledb
 import os
 import anotherOutput
-import database
+from model import weather_model
+from model import database
 
 arguments =  str(sys.argv)
 location = sys.argv[1][3:]
@@ -31,17 +32,17 @@ class Weather:
         except:
             self.js = None
         X = self.js
-        self.temp = X['main']['temp']
-        self.hum = X['main']['humidity']
-        self.time_stamp = X['dt']
+        temp = X['main']['temp']
+        hum = X['main']['humidity']
+        time_stamp = X['dt']
 
-
-        self.dict_key = self.location
-        self.dict_data = [self.temp, self.hum]
-        self.output.print('Weather forecast for:', self.location)
-        self.output.print('At', self.location, 'at time', self.time_stamp , 'the temperature is:', self.temp, 'while the humidity is', self.hum)
-        self.dict = {"timestamp": str(self.time_stamp), "data": self.dict_data}
-        response = self.database.Save(self.dict_key, self.dict)
+        weather = weather_model.WeatherModel(self.location)
+        weather.SetTemperature(temp)
+        weather.SetHumidity(hum)
+        weather.SetTimestamp(time_stamp)
+        self.output.print('Weather forecast for:', weather.GetLocation())
+        self.output.print('At', weather.GetLocation(), 'at time', weather.GetTimestamp() , 'the temperature is:', weather.GetTemperature(), 'while the humidity is', weather.GetHumidity())
+        response = weather.Save(self.database)
         if not response:
             self.output.print("unable to save")
 
@@ -81,7 +82,7 @@ class Weather:
             self.output.print('At time:', self.time, ', temperature is:', self.temp, 'and humidity is:',self.hum)
 
     def history(self):
-        response = self.database.Show(self.location)
+        response = self.database.GetKey(self.location)
         print(response)
         self.output.print('A history of weather data obtained from', self.location)
         if not response:

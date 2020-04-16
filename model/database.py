@@ -7,17 +7,22 @@ class Database():
         self.db.dump()
 
     def Save(self, key, value):
-        response = False
-        if key not in self.db.getall():
-            response = self.db.set(key, {value["timestamp"]:value["data"]})
-        else:
-            response = self.db.dadd(key, (value["timestamp"],value["data"]))
+        response = self.db.set(key, value)
         self.db.dump()
         return response
 
-    def Show(self, key):
+    def Update(self, key, value):
+        response = self.db.dadd(key, value)
+        self.db.dump()
+        return response
+    
+    def Get(self):
+        return self.db.getall()
+        
+    def GetKey(self, key):
+        response = []
         try:
             response = self.db.dgetall(key)
         except:
-            response = False
+            response = []
         return response
